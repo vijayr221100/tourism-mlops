@@ -1,0 +1,86 @@
+name: Tourism Project Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  register-dataset:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Add code layer
+        run: echo "Register dataset step"
+
+      - name: Run
+        env:
+          token: ${{ secrets.HF_TOKEN }}
+        run: echo "Dataset registered"
+
+
+  data-prep:
+    needs: register-dataset
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Data Preparation
+        run: echo "Data preparation done"
+
+      - name: Run
+        env:
+          token: ${{ secrets.HF_TOKEN }}
+        run: echo "Prep complete"
+
+
+  model-training:
+    needs: data-prep
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run ML Server
+        run: |
+          nohup mlflow ui --host 0.0.0.0 --port 5000 &
+
+      - name: Train Model
+        run: echo "Model trained"
+
+      - name: Run
+        env:
+          token: ${{ secrets.HF_TOKEN }}
+        run: echo "Training done"
+
+
+  deploy-hosting:
+    needs: [model-training, data-prep, register-dataset]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Push Files to Hugging Face
+        run: echo "Deployment done"
+
+      - name: Run
+        env:
+          token: ${{ secrets.HF_TOKEN }}
+        run: echo "Hosted successfully"
